@@ -63,7 +63,7 @@
 ### 🧱 My year in blocks
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/N-Shovel/n-shovel/output/contrib-tetris.svg" alt="My GitHub contributions dropping into place like Tetris blocks"/>
+  <img src="https://raw.githubusercontent.com/N-Shovel/N-Shovel/output/contrib-tetris.svg" alt="My GitHub contributions dropping into place like Tetris blocks"/>
 </p>
 
 ### 📊 GitHub stats
