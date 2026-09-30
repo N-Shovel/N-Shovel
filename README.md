@@ -60,10 +60,10 @@
 
 ---
 
-### 🧱 My year in blocks
+### 👾 My year, under attack
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/N-Shovel/N-Shovel/output/contrib-tetris.svg" alt="My GitHub contributions dropping into place like Tetris blocks"/>
+  <img src="https://raw.githubusercontent.com/N-Shovel/N-Shovel/output/contrib-invaders.svg" alt="A spaceship shooting down my GitHub contributions one by one"/>
 </p>
 
 ### 📊 GitHub stats

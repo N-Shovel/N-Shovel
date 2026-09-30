@@ -1,4 +1,4 @@
-name: Contribution Tetris
+name: Contribution Invaders
 
 on:
   schedule:
@@ -7,8 +7,8 @@ on:
   push:
     branches: [main]
     paths:
-      - scripts/contrib_tetris.py
-      - .github/workflows/contrib-tetris.yml
+      - scripts/contrib_invaders.py
+      - .github/workflows/contrib-invaders.yml
 
 permissions:
   contents: write
@@ -27,7 +27,7 @@ jobs:
       - name: Render SVG
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python scripts/contrib_tetris.py "${{ github.repository_owner }}" dist/contrib-tetris.svg
+        run: python scripts/contrib_invaders.py "${{ github.repository_owner }}" dist/contrib-invaders.svg
 
       - name: Publish to the output branch
         run: |
@@ -35,6 +35,6 @@ jobs:
           git init -q -b output
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add contrib-tetris.svg
-          git commit -q -m "Update contribution Tetris"
+          git add contrib-invaders.svg
+          git commit -q -m "Update contribution invaders"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" output
