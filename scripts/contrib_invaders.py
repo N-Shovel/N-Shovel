@@ -25,14 +25,14 @@ GAP_BELOW = 92                     # space between the board and the ship
 SHIP_H = 14
 
 # ---- timing (seconds) ---------------------------------------------------
-LOOP = 60.0          # target length of one full loop
+LOOP = 20.0          # target length of one full loop
 ENTER = 1.0          # board slides in
-FIRST_SHOT = 2.0     # first shot fired
+FIRST_SHOT = 1.4     # first shot fired
 SHOT_GAP = 0.35      # base pause between shots (scaled up to fill the loop)
 MOVE_PER_COL = 0.06  # extra time per column the ship travels (also scaled)
-BULLET_SPEED = 260.0 # px/s
+BULLET_SPEED = 430.0 # px/s
 SINK = 40.0          # px the board sinks over the whole attack
-OUTRO = 4.0          # after the last hit: "cleared" banner, fade out
+OUTRO = 2.6          # after the last hit: "cleared" banner, fade out
 BURST = 0.35         # explosion length
 
 LIGHT = ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"]
