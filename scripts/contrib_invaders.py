@@ -25,14 +25,14 @@ GAP_BELOW = 92                     # space between the board and the ship
 SHIP_H = 14
 
 # ---- timing (seconds) ---------------------------------------------------
+LOOP = 60.0          # target length of one full loop
 ENTER = 1.0          # board slides in
-FIRST_SHOT = 1.4     # first shot fired
-SAME_COL = 0.075     # delay between shots in the same column
-MOVE_BASE = 0.11     # time to move to the next column ...
-MOVE_PER_COL = 0.018 # ... plus this per extra column travelled
-BULLET_SPEED = 430.0 # px/s
-DESCENT = 1.6        # px/s the board sinks while under fire
-OUTRO = 2.6          # after the last hit: "cleared" banner, fade out
+FIRST_SHOT = 2.0     # first shot fired
+SHOT_GAP = 0.35      # base pause between shots (scaled up to fill the loop)
+MOVE_PER_COL = 0.06  # extra time per column the ship travels (also scaled)
+BULLET_SPEED = 260.0 # px/s
+SINK = 40.0          # px the board sinks over the whole attack
+OUTRO = 4.0          # after the last hit: "cleared" banner, fade out
 BURST = 0.35         # explosion length
 
 LIGHT = ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"]
@@ -84,40 +84,59 @@ def demo():
 
 # ---- the choreography ---------------------------------------------------
 def plan(weeks):
-    """Return (targets, end_of_fire). Each target has its fire and hit times."""
+    """Return (targets, end_of_fire, ship_y, descent_speed).
+
+    The ship clears the board one row at a time, starting with the row
+    nearest to it (Saturday), sweeping left->right then right->left. Shot
+    times are stretched so one loop lasts about LOOP seconds.
+    """
     board_bottom = TOP + 7 * STEP - GAP
     ship_y = board_bottom + GAP_BELOW          # top of the ship / muzzle
-    targets, t, prev_col = [], FIRST_SHOT, None
-    cols = [(c, sorted([d for d in w if d[3] > 0], key=lambda d: -d[1]))
-            for c, w in enumerate(weeks)]
-    cols = [x for x in cols if x[1]]
-    # snake across the board: left->right, bottom row of each column first
-    for c, days in cols:
-        for i, d in enumerate(days):
-            if prev_col is not None:
-                if c == prev_col:
-                    t += SAME_COL
-                else:
-                    t += MOVE_BASE + MOVE_PER_COL * (abs(c - prev_col) - 1)
-            prev_col = c
-            cell_bottom = TOP + d[1] * STEP + CELL
-            # board offset at time T is DESCENT * (T - ENTER); solve for when
-            # the bullet tip meets the (moving) bottom edge of the cell
-            hit = (ship_y - cell_bottom + BULLET_SPEED * t + DESCENT * ENTER) / (BULLET_SPEED + DESCENT)
-            hit_y = cell_bottom + DESCENT * (hit - ENTER)
-            targets.append({"col": c, "row": d[1], "lvl": d[3], "date": d[0], "n": d[2],
-                            "fire": t, "hit": hit, "hit_y": hit_y})
-    end = max((x["hit"] for x in targets), default=FIRST_SHOT) + 0.3
-    return targets, end, ship_y
+    rows = {}
+    for c, w in enumerate(weeks):
+        for d in w:
+            if d[3] > 0:
+                rows.setdefault(d[1], []).append((c, d))
+    order, forward = [], True
+    for r in sorted(rows, reverse=True):       # bottom row first
+        cells = sorted(rows[r], key=lambda x: x[0], reverse=not forward)
+        order += cells
+        forward = not forward
+    if not order:
+        return [], FIRST_SHOT + 0.3, ship_y, 0.0
+
+    # raw gaps, then stretch them so the last bullet lands near LOOP - OUTRO
+    gaps = [0.0] + [SHOT_GAP + MOVE_PER_COL * abs(order[i][0] - order[i - 1][0])
+                    for i in range(1, len(order))]
+    flight = (ship_y - TOP) / BULLET_SPEED
+    budget = LOOP - OUTRO - 0.3 - flight - FIRST_SHOT
+    scale = budget / max(sum(gaps), 1e-9)
+    fires, t = [], FIRST_SHOT
+    for g in gaps:
+        t += g * scale
+        fires.append(t)
+    descent = SINK / max(fires[-1] + flight - ENTER, 1.0)
+
+    targets = []
+    for (c, d), f in zip(order, fires):
+        cell_bottom = TOP + d[1] * STEP + CELL
+        # board offset at time T is descent * (T - ENTER); solve for when the
+        # bullet tip meets the (moving) bottom edge of the cell
+        hit = (ship_y - cell_bottom + BULLET_SPEED * f + descent * ENTER) / (BULLET_SPEED + descent)
+        hit_y = cell_bottom + descent * (hit - ENTER)
+        targets.append({"col": c, "row": d[1], "lvl": d[3], "date": d[0], "n": d[2],
+                        "fire": f, "hit": hit, "hit_y": hit_y})
+    end = max(x["hit"] for x in targets) + 0.3
+    return targets, end, ship_y, descent
 
 
 def render(login, total, weeks):
     ncols = len(weeks)
     width = LEFT + ncols * STEP + 16
-    targets, fire_end, ship_y = plan(weeks)
+    targets, fire_end, ship_y, descent = plan(weeks)
     height = ship_y + SHIP_H + 30
     period = fire_end + OUTRO
-    sink = DESCENT * (fire_end - ENTER)
+    sink = descent * (fire_end - ENTER)
 
     def pc(t):
         return f"{max(0.0, min(100.0, t / period * 100)):.4f}%"
@@ -144,7 +163,7 @@ svg{{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}}
  0%{{transform:translateY(-24px);opacity:0;animation-timing-function:ease-out}}
  {pc(ENTER)}{{transform:translateY(0);opacity:1}}
  {pc(fire_end)}{{transform:translateY({sink:.2f}px);opacity:1}}
- {pc(fire_end + 1.6)}{{transform:translateY({sink:.2f}px);opacity:1}}
+ {pc(period - 1.2)}{{transform:translateY({sink:.2f}px);opacity:1}}
  {pc(period - 0.25)},100%{{transform:translateY({sink + 10:.2f}px);opacity:0}}
 }}
 @keyframes clear{{
@@ -159,13 +178,17 @@ svg{{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}}
     frames = [(0.0, mid), (ENTER, mid)]
     for tg in targets:
         x = cx(tg["col"])
-        if frames[-1][1] != x:
-            frames.append((max(frames[-1][0], tg["fire"] - MOVE_BASE * 0.85), frames[-1][1]))
+        prev_t, prev_x = frames[-1]
+        if prev_x != x:
+            # hold briefly after the last shot, then glide over and fire on arrival
+            depart = prev_t + min(0.35, (tg["fire"] - prev_t) * 0.3)
+            frames.append((depart, prev_x))
         frames.append((tg["fire"], x))
-    frames += [(fire_end + 0.6, frames[-1][1]), (fire_end + 1.6, mid), (period, mid)]
+    frames += [(fire_end + 0.8, frames[-1][1]), (fire_end + 2.4, mid), (period, mid)]
     kf = []
     for t, x in frames:
-        kf.append(f"{pc(t)}{{transform:translateX({x - mid:.2f}px)}}")
+        kf.append(f"{pc(t)}{{transform:translateX({x - mid:.2f}px);"
+                  f"animation-timing-function:ease-in-out}}")
     css.append("@keyframes ship{" + "".join(kf) + "}")
 
     # per-target: the square pops, a bullet flies, a ring bursts
