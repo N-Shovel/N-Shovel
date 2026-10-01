@@ -25,13 +25,13 @@ GAP_BELOW = 92                     # space between the board and the ship
 SHIP_H = 14
 
 # ---- timing (seconds) ---------------------------------------------------
-LOOP = 20.0          # target length of one full loop
 ENTER = 1.0          # board slides in
 FIRST_SHOT = 1.4     # first shot fired
-SHOT_GAP = 0.35      # base pause between shots (scaled up to fill the loop)
-MOVE_PER_COL = 0.06  # extra time per column the ship travels (also scaled)
+SAME_COL = 0.075     # delay between shots in the same column
+MOVE_BASE = 0.11     # time to move to the next column ...
+MOVE_PER_COL = 0.018 # ... plus this per extra column travelled
 BULLET_SPEED = 430.0 # px/s
-SINK = 40.0          # px the board sinks over the whole attack
+DESCENT = 1.6        # px/s the board sinks while under fire
 OUTRO = 2.6          # after the last hit: "cleared" banner, fade out
 BURST = 0.35         # explosion length
 
@@ -87,8 +87,7 @@ def plan(weeks):
     """Return (targets, end_of_fire, ship_y, descent_speed).
 
     The ship clears the board one row at a time, starting with the row
-    nearest to it (Saturday), sweeping left->right then right->left. Shot
-    times are stretched so one loop lasts about LOOP seconds.
+    nearest to it (Saturday), sweeping left->right then right->left.
     """
     board_bottom = TOP + 7 * STEP - GAP
     ship_y = board_bottom + GAP_BELOW          # top of the ship / muzzle
@@ -105,17 +104,14 @@ def plan(weeks):
     if not order:
         return [], FIRST_SHOT + 0.3, ship_y, 0.0
 
-    # raw gaps, then stretch them so the last bullet lands near LOOP - OUTRO
-    gaps = [0.0] + [SHOT_GAP + MOVE_PER_COL * abs(order[i][0] - order[i - 1][0])
-                    for i in range(1, len(order))]
-    flight = (ship_y - TOP) / BULLET_SPEED
-    budget = LOOP - OUTRO - 0.3 - flight - FIRST_SHOT
-    scale = budget / max(sum(gaps), 1e-9)
+    # fixed shooting speed: the loop gets longer the more squares there are
     fires, t = [], FIRST_SHOT
-    for g in gaps:
-        t += g * scale
+    for i, (c, _) in enumerate(order):
+        if i:
+            dist = abs(c - order[i - 1][0])
+            t += SAME_COL if dist == 0 else MOVE_BASE + MOVE_PER_COL * (dist - 1)
         fires.append(t)
-    descent = SINK / max(fires[-1] + flight - ENTER, 1.0)
+    descent = DESCENT
 
     targets = []
     for (c, d), f in zip(order, fires):
@@ -181,7 +177,7 @@ svg{{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}}
         prev_t, prev_x = frames[-1]
         if prev_x != x:
             # hold briefly after the last shot, then glide over and fire on arrival
-            depart = prev_t + min(0.35, (tg["fire"] - prev_t) * 0.3)
+            depart = prev_t + (tg["fire"] - prev_t) * 0.15
             frames.append((depart, prev_x))
         frames.append((tg["fire"], x))
     frames += [(fire_end + 0.8, frames[-1][1]), (fire_end + 2.4, mid), (period, mid)]
