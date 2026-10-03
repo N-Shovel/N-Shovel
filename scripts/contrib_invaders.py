@@ -15,7 +15,7 @@ import os
 import random
 import sys
 import urllib.request
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 # ---- layout -------------------------------------------------------------
 CELL, GAP = 11, 3
@@ -35,21 +35,28 @@ DESCENT = 1.6        # px/s the board sinks while under fire
 OUTRO = 2.6          # after the last hit: "cleared" banner, fade out
 BURST = 0.35         # explosion length
 
+# days roll over at local midnight, not UTC (Philippines, no DST)
+TZ = timezone(timedelta(hours=8))
+
 LIGHT = ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"]
 DARK = ["#161b22", "#0e4429", "#006d32", "#26a641", "#39d353"]
 
 LEVELS = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2,
           "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
 
-QUERY = """query($login:String!){user(login:$login){contributionsCollection{
+QUERY = """query($login:String!,$from:DateTime!,$to:DateTime!){user(login:$login){
+contributionsCollection(from:$from,to:$to){
 contributionCalendar{totalContributions weeks{contributionDays{
 date weekday contributionCount contributionLevel}}}}}}"""
 
 
 def fetch(login, token):
+    # the offset on from/to makes GitHub bucket days in our timezone
+    end = datetime.now(TZ).replace(hour=23, minute=59, second=59, microsecond=0)
+    span = {"login": login, "from": (end - timedelta(days=365)).isoformat(), "to": end.isoformat()}
     req = urllib.request.Request(
         "https://api.github.com/graphql",
-        data=json.dumps({"query": QUERY, "variables": {"login": login}}).encode(),
+        data=json.dumps({"query": QUERY, "variables": span}).encode(),
         headers={"Authorization": f"bearer {token}", "Content-Type": "application/json"},
     )
     with urllib.request.urlopen(req, timeout=30) as r:
@@ -254,7 +261,7 @@ svg{{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}}
                f'YEAR CLEARED • {total:,} CONTRIBUTIONS</text>')
 
     out.append(f'<text class="m" x="{LEFT}" y="{height - 10}" font-size="9">'
-               f'@{login} · updated {date.today():%b %d, %Y}</text>')
+               f'@{login} · updated {datetime.now(TZ):%b %d, %Y}</text>')
     out.append("</svg>")
     return "\n".join(out), targets, period
 
