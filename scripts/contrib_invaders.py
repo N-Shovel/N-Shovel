@@ -51,7 +51,7 @@ date weekday contributionCount contributionLevel}}}}}}"""
 
 
 def fetch(login, token):
-    # the offset on from/to makes GitHub bucket days in our timezone
+    # end the range tonight in local time so today is always on the board
     end = datetime.now(TZ).replace(hour=23, minute=59, second=59, microsecond=0)
     span = {"login": login, "from": (end - timedelta(days=365)).isoformat(), "to": end.isoformat()}
     req = urllib.request.Request(

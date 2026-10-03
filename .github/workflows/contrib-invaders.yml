@@ -26,7 +26,9 @@ jobs:
 
       - name: Render SVG
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GitHub groups contribution days by the viewer's timezone. The built-in
+          # token sees UTC days; a personal token sees them as you do on your profile.
+          GITHUB_TOKEN: ${{ secrets.CONTRIB_TOKEN || secrets.GITHUB_TOKEN }}
         run: python scripts/contrib_invaders.py "${{ github.repository_owner }}" dist/contrib-invaders.svg
 
       - name: Publish to the output branch
