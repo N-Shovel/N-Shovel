@@ -18,7 +18,6 @@
 - 🔭 Interested in **systems-building**, self-hosting, and tools that fix my own everyday problems
 - 🌱 Currently learning web fundamentals through **The Odin Project**, and 3D on the web with **Three.js**
 - 🎮 Also into game dev (Three.js, Godot, Unity VR) and 3D modeling in Blender
-- 💡 Thesis direction: a **self-hosted personal cloud with AI-powered search**
 
 ---
 
