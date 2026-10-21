@@ -5,6 +5,7 @@
 </p>
 
 <p align="center">
+  <a href="https://nimrodpala.vercel.app"><img src="https://img.shields.io/badge/Portfolio-nimrodpala.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Portfolio"/></a>
   <a href="https://n-shovel.github.io/c-data-structures-visualizer/"><img src="https://img.shields.io/badge/Featured-C%20Visualizers-2ea44f?style=for-the-badge" alt="C Visualizers"/></a>
   <a href="https://n-shovel.github.io/scrapyard-kingdom/"><img src="https://img.shields.io/badge/Play-Scrapyard%20Kingdom-orange?style=for-the-badge" alt="Scrapyard Kingdom"/></a>
   <a href="mailto:nimrod.pala@carsu.edu.ph"><img src="https://img.shields.io/badge/Email-Contact%20me-blue?style=for-the-badge&logo=gmail&logoColor=white" alt="Email"/></a>
@@ -15,6 +16,7 @@
 ### 🧑‍💻 About me
 
 - 🎓 BSCS @ **Caraga State University** (CCIS)
+- 🌐 Portfolio: **[nimrodpala.vercel.app](https://nimrodpala.vercel.app)**
 - 🔭 Interested in **systems-building**, self-hosting, and tools that fix my own everyday problems
 - 🌱 Currently learning web fundamentals through **The Odin Project**, and 3D on the web with **Three.js**
 - 🎮 Also into game dev (Three.js, Godot, Unity VR) and 3D modeling in Blender
