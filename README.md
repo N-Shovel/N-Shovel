@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://nimrodpala.vercel.app"><img src="https://img.shields.io/badge/Visit-My%20Portfolio-1f6feb?style=for-the-badge&logo=vercel&logoColor=white&labelColor=0d1117" alt="Portfolio"/></a>
+  <a href="https://nimrodpala.vercel.app"><img src="https://img.shields.io/badge/Visit-My%20Portfolio-1f6feb?style=for-the-badge&logo=vercel&logoColor=white" alt="Portfolio"/></a>
 </p>
 
 ---
